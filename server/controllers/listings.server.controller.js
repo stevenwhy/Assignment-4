@@ -47,6 +47,26 @@ exports.read = function(req, res) {
 exports.update = function(req, res) {
   var listing = req.listing;
 
+  req.listing.name = req.body.name;
+  req.listing.code = req.body.code;
+  req.listing.address = req.body.address;
+
+  if(req.results) {
+    listing.coordinates = {
+      latitude: req.results.lat, 
+      longitude: req.results.lng
+    };
+  }
+
+  /* Then save the listing */
+  listing.save(function(err) {
+    if(err) {
+      console.log(err);
+      res.status(400).send(err);
+    } else {
+      res.json(listing);
+    }
+  })
   /* Replace the article's properties with the new properties found in req.body */
   /* save the coordinates (located in req.results if there is an address property) */
   /* Save the article */
@@ -55,13 +75,23 @@ exports.update = function(req, res) {
 /* Delete a listing */
 exports.delete = function(req, res) {
   var listing = req.listing;
-
+  
   /* Remove the article */
+  listing.remove(function(err) {
+    if(err) throw err;
+    else res.end();
+  })
 };
 
 /* Retreive all the directory listings, sorted alphabetically by listing code */
 exports.list = function(req, res) {
   /* Your code here */
+  Listing.find().sort('code').exec(function(err, listings) {
+    if(err) res.status(400).send(err);
+    else {
+      res.json(listings);
+    }
+  })
 };
 
 /* 
